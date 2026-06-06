@@ -1,0 +1,5 @@
+# Copie este arquivo para .env.local e preencha com os dados do seu projeto Supabase.
+# Encontre em: Supabase > Settings > API Keys (Publishable key) e Settings > General (Project URL)
+
+VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+VITE_SUPABASE_ANON=sb_publishable_sua_chave_aqui

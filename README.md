@@ -89,11 +89,18 @@ O contador deve subir.
 
 ## Manutenção do conteúdo
 
-- **Status dos vereadores:** edite o campo `status` de cada um na lista
-  `VEREADORES_INICIAIS` no topo de `src/RachadometroCuritiba.jsx`
-  (`"signed"` | `"refused"` | `"no-response"` | `"waiting"`).
-- **WhatsApp dos gabinetes:** adicione `whatsapp: "5541999999999"` (só dígitos,
-  com 55 + DDD) a cada vereador para o botão abrir a conversa direto.
+- **Status dos vereadores:** agora vem do banco. Edite na tabela `vereadores`
+  do Supabase (Table Editor), no campo `status` de cada um
+  (`signed` | `refused` | `no-response` | `waiting`). O painel reflete ao recarregar.
+- **Aprovar adesões de vereadores:** quando um parlamentar declara adesão pelo
+  site, ela entra na tabela `adesoes` como pendente (`aprovado = false`) e NÃO
+  muda o painel. Para aprovar: confira na tabela `adesoes`, depois abra
+  `vereadores`, ache o nome e troque `status` para `signed`. Opcional: marque
+  `aprovado = true` na adesão para arquivá-la.
+- **WhatsApp dos gabinetes:** preencha a coluna `whatsapp` do vereador na tabela
+  (só dígitos, com 55 + DDD, ex: 5541999999999).
+- **Setup inicial das tabelas:** rode o arquivo `setup-vereadores.sql` no SQL
+  Editor do Supabase (uma única vez).
 - **Política de privacidade:** revise o texto da seção `#privacidade` e inclua
   um e-mail de contato real para solicitações de LGPD.
 - **Total de assinaturas:** é lido automaticamente do banco; não precisa editar.
