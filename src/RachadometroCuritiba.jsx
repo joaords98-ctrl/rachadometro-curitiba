@@ -57,6 +57,36 @@ async function supabaseTotal() {
   return await resp.json(); // retorna um número
 }
 
+// Lê a lista de vereadores do banco, ordenada.
+async function supabaseVereadores() {
+  const resp = await fetch(
+    `${SUPABASE_URL}/rest/v1/vereadores?select=nome,partido,status,whatsapp&order=ordem.asc`,
+    {
+      headers: {
+        apikey: SUPABASE_ANON,
+        Authorization: `Bearer ${SUPABASE_ANON}`,
+      },
+    }
+  );
+  if (!resp.ok) throw new Error("Falha ao ler vereadores");
+  return await resp.json(); // array de vereadores
+}
+
+// Grava uma adesão pendente (entra como aprovado=false; não afeta o painel).
+async function supabaseAdesao(payload) {
+  const resp = await fetch(`${SUPABASE_URL}/rest/v1/adesoes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: SUPABASE_ANON,
+      Authorization: `Bearer ${SUPABASE_ANON}`,
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!resp.ok) throw new Error("Falha ao registrar adesão");
+}
+
 // ---------------------------------------------------------------------------
 // DADOS — edite o campo `status` de cada vereador conforme as manifestações.
 // status: "signed" | "refused" | "no-response" | "waiting"
@@ -125,7 +155,7 @@ const iniciais = (nome) =>
     .toUpperCase();
 
 export default function RachadometroCuritiba() {
-  const [vereadores] = useState(VEREADORES_INICIAIS);
+  const [vereadores, setVereadores] = useState(VEREADORES_INICIAIS);
   const [busca, setBusca] = useState("");
   const [partido, setPartido] = useState("all");
   const [filtroStatus, setFiltroStatus] = useState("all");
@@ -148,12 +178,19 @@ export default function RachadometroCuritiba() {
     ? (totalReal ?? 0)
     : assinaturasSessao;
 
-  // Ao abrir a página, busca o total real (se Supabase estiver configurado).
+  // Ao abrir a página, busca o total real e a lista de vereadores do banco.
   useEffect(() => {
     if (!SUPABASE_ATIVO) return;
     supabaseTotal()
       .then((n) => setTotalReal(typeof n === "number" ? n : 0))
       .catch(() => setTotalReal(0));
+    supabaseVereadores()
+      .then((lista) => {
+        if (Array.isArray(lista) && lista.length > 0) setVereadores(lista);
+      })
+      .catch(() => {
+        /* mantém a lista de fallback se a leitura falhar */
+      });
   }, []);
 
   const enviarLead = async () => {
@@ -191,11 +228,30 @@ export default function RachadometroCuritiba() {
     }
   };
 
-  const enviarVereador = () => {
-    if (!verForm.nome.trim()) return;
-    // INTEGRAÇÃO (opcional): gravar a adesão do vereador numa tabela própria,
-    // com verificação manual antes de mudar o status no painel.
-    setVerEnviado(true);
+  const [verEnviando, setVerEnviando] = useState(false);
+  const [verErro, setVerErro] = useState("");
+
+  const enviarVereador = async () => {
+    if (!verForm.nome.trim()) {
+      setVerErro("Informe o nome do parlamentar.");
+      return;
+    }
+    setVerErro("");
+    setVerEnviando(true);
+    try {
+      if (SUPABASE_ATIVO) {
+        await supabaseAdesao({
+          vereador_nome: verForm.nome.trim(),
+          partido: verForm.partido.trim() || null,
+          email: verForm.email.trim() || null,
+        });
+      }
+      setVerEnviado(true);
+    } catch (e) {
+      setVerErro("Não foi possível registrar a adesão agora. Tente novamente.");
+    } finally {
+      setVerEnviando(false);
+    }
   };
 
   const total = vereadores.length;
@@ -459,14 +515,17 @@ export default function RachadometroCuritiba() {
             </p>
             {verEnviado ? (
               <div style={{ marginTop: 16, fontSize: 14, color: STATUS.signed.color, fontWeight: 600 }}>
-                ✓ Adesão recebida. Faremos a verificação e atualizaremos o painel.
+                ✓ Adesão recebida. Faremos a verificação e, após confirmação, o painel será atualizado.
               </div>
             ) : (
               <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                 <input style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="Nome parlamentar *" value={verForm.nome} onChange={(e) => setVerForm({ ...verForm, nome: e.target.value })} />
                 <input style={{ ...inputStyle, flex: "1 1 120px" }} placeholder="Partido" value={verForm.partido} onChange={(e) => setVerForm({ ...verForm, partido: e.target.value })} />
                 <input style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="E-mail oficial" type="email" value={verForm.email} onChange={(e) => setVerForm({ ...verForm, email: e.target.value })} />
-                <button style={btnPrimary} onClick={enviarVereador}><ShieldCheck size={16} /> Assinar compromisso</button>
+                <button style={{ ...btnPrimary, opacity: verEnviando ? 0.6 : 1, cursor: verEnviando ? "wait" : "pointer" }} onClick={enviarVereador} disabled={verEnviando}>
+                  <ShieldCheck size={16} /> {verEnviando ? "Enviando…" : "Assinar compromisso"}
+                </button>
+                {verErro && <p style={{ width: "100%", fontSize: 12, color: STATUS.refused.color, margin: 0 }}>{verErro}</p>}
               </div>
             )}
           </div>
