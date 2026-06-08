@@ -524,17 +524,17 @@ export default function RachadometroCuritiba() {
             </div>
             <p style={{ marginTop: 8, fontSize: 14, color: "#a7adbb", maxWidth: 640 }}>
               Parlamentares da Câmara de Curitiba podem assumir publicamente o compromisso contra rachadinha e nepotismo.
-              Após validação, o posicionamento é atualizado no painel.
+              Após a validação e o retorno do termo de compromisso enviado por e-mail, o ranking é atualizado.
             </p>
             {verEnviado ? (
               <div style={{ marginTop: 16, fontSize: 14, color: STATUS.signed.color, fontWeight: 600 }}>
-                ✓ Adesão recebida. Faremos a verificação e, após confirmação, o painel será atualizado.
+                ✓ Adesão recebida. Após a validação e o retorno do termo de compromisso assinado (enviado ao seu e-mail), o ranking será atualizado.
               </div>
             ) : (
               <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
-                <input style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="Nome parlamentar *" value={verForm.nome} onChange={(e) => setVerForm({ ...verForm, nome: e.target.value })} />
-                <input style={{ ...inputStyle, flex: "1 1 120px" }} placeholder="Partido" value={verForm.partido} onChange={(e) => setVerForm({ ...verForm, partido: e.target.value })} />
-                <input style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="E-mail oficial" type="email" value={verForm.email} onChange={(e) => setVerForm({ ...verForm, email: e.target.value })} />
+                <input autoComplete="off" name="ver_nome_rdm" style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="Nome parlamentar *" value={verForm.nome} onChange={(e) => setVerForm({ ...verForm, nome: e.target.value })} />
+                <input autoComplete="off" name="ver_partido_rdm" style={{ ...inputStyle, flex: "1 1 120px" }} placeholder="Partido" value={verForm.partido} onChange={(e) => setVerForm({ ...verForm, partido: e.target.value })} />
+                <input autoComplete="off" name="ver_email_rdm" style={{ ...inputStyle, flex: "1 1 200px" }} placeholder="E-mail oficial" type="email" value={verForm.email} onChange={(e) => setVerForm({ ...verForm, email: e.target.value })} />
                 <button style={{ ...btnPrimary, opacity: verEnviando ? 0.6 : 1, cursor: verEnviando ? "wait" : "pointer" }} onClick={enviarVereador} disabled={verEnviando}>
                   <ShieldCheck size={16} /> {verEnviando ? "Enviando…" : "Assinar compromisso"}
                 </button>
