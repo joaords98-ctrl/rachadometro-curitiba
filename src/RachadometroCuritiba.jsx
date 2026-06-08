@@ -155,6 +155,16 @@ const iniciais = (nome) =>
     .toUpperCase();
 
 export default function RachadometroCuritiba() {
+  // Detecta tela estreita para empilhar layouts no mobile.
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 820 : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 820);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
   const [vereadores, setVereadores] = useState(VEREADORES_INICIAIS);
   const [busca, setBusca] = useState("");
   const [partido, setPartido] = useState("all");
@@ -309,9 +319,12 @@ export default function RachadometroCuritiba() {
         color: "#e7e9ee",
         fontFamily: "'Space Grotesk', system-ui, sans-serif",
         minHeight: "100vh",
+        overflowX: "hidden",
       }}
     >
       <style>{`
+        * { box-sizing: border-box; }
+        html, body { margin: 0; overflow-x: hidden; max-width: 100%; }
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
         .mono { font-family: 'JetBrains Mono', monospace; }
         @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
@@ -414,7 +427,7 @@ export default function RachadometroCuritiba() {
             noticiário local (jun/2026).
           </p>
 
-          <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 32, alignItems: "start" }}>
+          <div style={{ marginTop: 32, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,1fr) minmax(0,1fr)", gap: 32, alignItems: "start" }}>
             {/* Coluna esquerda: título + texto + contador */}
             <div>
               <h3 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 700, lineHeight: 1.05, margin: 0, letterSpacing: "-0.02em" }}>
@@ -651,7 +664,7 @@ export default function RachadometroCuritiba() {
             Percentual de vereadores que assumiram compromisso público contra rachadinha e nepotismo.
           </SectionHead>
 
-          <div style={{ marginTop: 48, display: "grid", gridTemplateColumns: "minmax(0,2fr) minmax(0,3fr)", gap: 32 }}>
+          <div style={{ marginTop: 48, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "minmax(0,2fr) minmax(0,3fr)", gap: 32 }}>
             {/* Medidor */}
             <div style={{ ...cardGrad, padding: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ position: "relative", width: "100%", maxWidth: 320 }}>
@@ -837,4 +850,3 @@ function Faixa({ color, txt, sub }) {
     </div>
   );
 }
-
