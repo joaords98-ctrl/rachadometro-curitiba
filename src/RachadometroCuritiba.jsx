@@ -295,7 +295,7 @@ export default function RachadometroCuritiba() {
     indice <= 30 ? STATUS.refused.color : indice <= 70 ? STATUS["no-response"].color : STATUS.signed.color;
 
   const compartilharTexto = `Rachadômetro Curitiba: ${counts.signed} de ${total} vereadores assinaram o compromisso contra a rachadinha.`;
-  const url = "https://rachadometro-curitiba.lovable.app";
+  const url = "https://www.rachadometrocuritiba.com.br";
 
   const copiarLink = () => {
     navigator.clipboard?.writeText(url).then(() => {
@@ -753,8 +753,8 @@ export default function RachadometroCuritiba() {
             correção ou exclusão dos seus dados a qualquer momento pelo e-mail de contato da campanha; nesse caso, sua
             assinatura é removida. Mantemos os registros apenas enquanto a campanha estiver ativa.
           </p>
-          <p className="mono" style={{ marginTop: 10, fontSize: 11, color: "#6b7280" }}>
-            Substitua este texto pela versão final revisada e inclua um e-mail de contato real para solicitações de LGPD.
+          <p style={{ marginTop: 10 }}>
+            Contato para solicitações de privacidade (LGPD): <a href="mailto:minhamissaoparana@gmail.com" style={{ color: "#cfd3dc", textDecoration: "underline" }}>minhamissaoparana@gmail.com</a>
           </p>
         </div>
       </section>
