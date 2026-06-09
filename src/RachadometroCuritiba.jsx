@@ -280,12 +280,21 @@ export default function RachadometroCuritiba() {
   );
 
   const filtrados = useMemo(() => {
-    return vereadores.filter((v) => {
+    const lista = vereadores.filter((v) => {
       const okBusca = v.nome.toLowerCase().includes(busca.toLowerCase());
       const okPartido = partido === "all" || v.partido === partido;
       const okStatus = filtroStatus === "all" || v.status === filtroStatus;
       return okBusca && okPartido && okStatus;
     });
+    // Quem assinou vai para o topo (mantém a ordem original dentro de cada grupo).
+    return lista
+      .map((v, i) => ({ v, i }))
+      .sort((a, b) => {
+        const pa = a.v.status === "signed" ? 0 : 1;
+        const pb = b.v.status === "signed" ? 0 : 1;
+        return pa - pb || a.i - b.i;
+      })
+      .map((x) => x.v);
   }, [vereadores, busca, partido, filtroStatus]);
 
   // ângulo do ponteiro: 0% => -90deg (esquerda), 100% => +90deg (direita)
@@ -608,12 +617,45 @@ export default function RachadometroCuritiba() {
           <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px,1fr))", gap: 16 }}>
             {filtrados.map((v, i) => {
               const s = STATUS[v.status];
+              const assinou = v.status === "signed";
               return (
                 <article
                   key={v.nome}
                   className="card-hover fade-up"
-                  style={{ ...cardGrad, padding: 16, border: `1px solid ${s.color}33`, animationDelay: `${Math.min(i * 18, 600)}ms` }}
+                  style={{
+                    ...cardGrad,
+                    padding: 16,
+                    position: "relative",
+                    border: assinou ? `2px solid ${STATUS.signed.color}` : `1px solid ${s.color}33`,
+                    background: assinou
+                      ? `linear-gradient(180deg, ${STATUS.signed.color}1f, rgba(16,20,28,.5))`
+                      : cardGrad.background,
+                    boxShadow: assinou ? `0 0 0 1px ${STATUS.signed.color}55, 0 8px 30px -10px ${STATUS.signed.color}66` : cardGrad.boxShadow,
+                    animationDelay: `${Math.min(i * 18, 600)}ms`,
+                  }}
                 >
+                  {assinou && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        background: STATUS.signed.color,
+                        color: "#06210f",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: ".05em",
+                        textTransform: "uppercase",
+                        padding: "3px 8px",
+                        borderRadius: 999,
+                      }}
+                    >
+                      <ShieldCheck size={11} /> Assinou
+                    </span>
+                  )}
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ position: "relative", display: "grid", placeItems: "center", height: 56, width: 56, flexShrink: 0, borderRadius: "50%", background: `${s.color}26`, color: "#cfd3dc", fontWeight: 700, border: `2px solid ${s.color}4d` }}>
                       {iniciais(v.nome)}
@@ -624,9 +666,9 @@ export default function RachadometroCuritiba() {
                       <p className="mono" style={{ fontSize: 12, color: "#8a91a3", marginTop: 2 }}>{v.partido}</p>
                     </div>
                   </div>
-                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#a7adbb" }}>
+                  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: assinou ? STATUS.signed.color : "#a7adbb" }}>
                     <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color }} />
-                    <span style={{ fontWeight: 500 }}>{s.short}</span>
+                    <span style={{ fontWeight: assinou ? 700 : 500 }}>{s.short}</span>
                   </div>
                   {v.status === "waiting" && v.daysWaiting > 0 && (
                     <div className="mono" style={{ marginTop: 8, fontSize: 10, letterSpacing: ".05em", textTransform: "uppercase", color: "#6b7280" }}>
@@ -634,9 +676,11 @@ export default function RachadometroCuritiba() {
                     </div>
                   )}
                   <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
-                    <button style={btnCardGhost} onClick={() => { setVerForm({ nome: v.nome, partido: v.partido, email: "" }); setVerEnviado(false); document.getElementById("adesao-vereador")?.scrollIntoView({ behavior: "smooth" }); }}>
-                      <ShieldCheck size={14} /> Assinar compromisso
-                    </button>
+                    {!assinou && (
+                      <button style={btnCardGhost} onClick={() => { setVerForm({ nome: v.nome, partido: v.partido, email: "" }); setVerEnviado(false); document.getElementById("adesao-vereador")?.scrollIntoView({ behavior: "smooth" }); }}>
+                        <ShieldCheck size={14} /> Assinar compromisso
+                      </button>
+                    )}
                     <a
                       style={btnCardWhats}
                       href={`https://wa.me/${v.whatsapp || ""}?text=${encodeURIComponent(
